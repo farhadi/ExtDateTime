@@ -41,7 +41,7 @@ class ExtDateTime extends DateTime
 			parent::__construct(null, $timezone);
 			$this->set($time);
 		} else {
-			$time = $this->backTranslate($time);
+			if (is_string($time)) $time = $this->backTranslate($time);
 			$date = parent::__construct($time, $timezone);
 		}
 	}
@@ -140,6 +140,18 @@ class ExtDateTime extends DateTime
 	}
 
 	/**
+	 * Alter the timestamp by incrementing or decrementing in a format accepted by strtotime().
+	 * @param string $modify a string in a relative format accepted by strtotime(). 
+	 * @return ExtDateTime the modified DateTime.
+	 */
+	public function modify($modify)
+	{
+		$modify = $this->backTranslate($modify);
+		parent::modify($modify);
+		return $this;
+	}
+
+	/**
 	 * Returns date formatted according to given format
 	 * @param string $format Format accepted by date(). 
 	 * @param mixed $timezone DateTimeZone object or timezone identifier as full name (e.g. Asia/Tehran) or abbreviation (e.g. IRDT). 
@@ -213,19 +225,17 @@ class ExtDateTime extends DateTime
 	 * @return void
 	 */
 	protected function buildTranslations() {
-		for ($i = 0; $i < 7; $i++) {
-			$this->translations[date('l', strtotime("+$i days"))] = ''; 
-			$this->translations[date('D', strtotime("+$i days"))] = '';
-		}
+		$keywords = array(
+			'Friday', 'Fri', 'Saturday', 'Sat', 'Sunday', 'Sun', 'Monday', 'Mon',
+			'Tuesday', 'Tue', 'Wednesday', 'Wed', 'Thursday', 'Thu', 
+			'August', 'Aug', 'September', 'Sep', 'October', 'Oct', 'November', 'Nov',
+			'December', 'Dec', 'January', 'Jan', 'February', 'Feb', 'March', 'Mar',
+			'April', 'Apr', 'May', 'June', 'Jun', 'July', 'Jul', 'Today', 
+			'Yesterday', 'Tomorrow', 'next', 'last', 'previous', 'year', 
+			'month', 'week', 'day', 'hour', 'minute', 'second',
+			'st', 'nd', 'rd', 'th', 'am', 'AM', 'pm', 'PM');
 
-		for ($i = 0; $i < 12; $i++) {
-			$this->translations[date('F', strtotime("+$i months"))] = ''; 
-			$this->translations[date('M', strtotime("+$i months"))] = '';
-		}
-
-		$this->translations += array('st'=>'', 'nd'=>'', 'rd'=>'', 'th'=>'', 'am'=>'', 'AM'=>'', 'pm'=>'', 'PM'=>'');
-		
-		foreach ($this->translations as $key => $value) {
+		foreach ($keywords as $key) {
 			$this->translations[$key] = $this->translate($key);
 		}
 	}
@@ -237,7 +247,7 @@ class ExtDateTime extends DateTime
 	 */
 	protected function backTranslate($str)
 	{
-		if (!$this->translator) return $str;
+		if (!$this->translator || !$str || preg_match('@^[-\\\\/\s\d]*$@', $str)) return $str;
 
 		if (!$this->translations) {
 			$this->buildTranslations();

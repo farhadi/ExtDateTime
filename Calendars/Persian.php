@@ -12,32 +12,89 @@ class ExtDateTime_Persian extends ExtDateTime
 	public function __construct($time = null, $timezone = null, $translator = null)
 	{
 		$this->setTranslator($translator);
+		$modify = false;
 		if (is_string($time) && !preg_match('/^[-+]?\d+$/', $time)) {
 			$time = $this->backTranslate($time);
 			$time = self::jalaliToGregorianStr($time);
+			$modify = $time;
+			$time = preg_replace('/((?:[+-]?\d+)|next|last|previous)\s*(year|month)/i', '', $time);
+			if ($modify == $time) $modify = false;
 		}
+
 		parent::__construct($time, $timezone, $translator);
-	}
-	
-	protected function buildTranslations() {
-		foreach (self::$j_months as $month) {
-			$this->translations[$month] = '';
+
+		if ($modify) {
+			preg_replace_callback('/((?:[+-]?\d+)|next|last|previous)\s*(year|month)/i', array($this, 'modifyCallback'), $modify);
 		}
+	}
+
+	protected function buildTranslations() {
 		parent::buildTranslations();
+		
+		foreach (self::$j_months as $month) {
+			$this->translations[$month] = $this->translate($month);
+		}
 	}
 
 	public function set($time = null, $timezone = null) {
 		if (is_string($time) && !preg_match('/^[-+]?\d+$/', $time)) {
 			$time = $this->backTranslate($time);
-			$time = self::jalaliToGregorianStr($time);
+			$class = __CLASS__;
+			$time = new $class($time, $timezone ? $timezone : $this->getTimezone());
 		}
-		parent::set($time, $timezone);
+
+		return parent::set($time, $timezone);
 	}
 
 	public function setDate($year, $month, $day)
 	{
 		list( $year, $month, $day ) = self::jalaliToGregorian($year, $month, $day);
-		parent::setDate( $year, $month, $day );
+		return parent::setDate( $year, $month, $day );
+	}
+	
+	protected function modifyCallback($matches) {
+		list($y, $m, $d) = explode('-', $this->format('Y-n-j'));
+		$change = strtolower($matches[1]);
+		$unit = strtolower($matches[2]);
+
+		switch ($change) {
+			case "next":
+				$change = '+1';
+				break;
+
+			case "last":
+			case "previous":
+				$change = '-1';
+				break;
+		}
+
+		switch ($unit) {
+			case "month":
+				$m += $change;
+				if ($m > 12) {
+					$y += floor($m/12);
+					$m = $m % 12;
+				} elseif ($m < 1) {
+					$y += ceil($m/12) - 1;
+					$m = $m % 12 + 12;
+				}
+				break;
+
+			case "year":
+				$y += $change;
+				break; 
+		}
+
+		$this->setDate($y, $m, $d);
+
+		return '';
+	}
+	
+	public function modify($modify) {
+		$modify = $this->backTranslate($modify);
+		$modify = preg_replace_callback('/((?:[+-]?\d+)|next|last|previous)\s*(year|month)/i', array($this, 'modifyCallback'), $modify);
+		parent::modify($modify);
+		return $this;
 	}
 
 	public function format($format, $timezone = null)
@@ -49,7 +106,7 @@ class ExtDateTime_Persian extends ExtDateTime
 
 		$result = "";
 
-		list( $year, $month, $day ) = explode('-', parent::format("Y-m-d"));
+		list( $year, $month, $day ) = explode('-', parent::format("Y-n-j"));
 		list( $jyear, $jmonth, $jday ) = self::gregorianToJalali($year, $month, $day);
 
 		for ($i = 0; $i < strlen($format); $i++) {

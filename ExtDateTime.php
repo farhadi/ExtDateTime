@@ -231,8 +231,8 @@ class ExtDateTime extends DateTime
 			'August', 'Aug', 'September', 'Sep', 'October', 'Oct', 'November', 'Nov',
 			'December', 'Dec', 'January', 'Jan', 'February', 'Feb', 'March', 'Mar',
 			'April', 'Apr', 'May', 'June', 'Jun', 'July', 'Jul', 'Today', 
-			'Yesterday', 'Tomorrow', 'next', 'last', 'previous', 'year', 
-			'month', 'week', 'day', 'hour', 'minute', 'second',
+			'Yesterday', 'Tomorrow', 'Next', 'Last', 'Previous', 'Year', 
+			'Month', 'Week', 'Day', 'Hour', 'Minute', 'Second',
 			'st', 'nd', 'rd', 'th', 'am', 'AM', 'pm', 'PM');
 
 		foreach ($keywords as $key) {

@@ -13,7 +13,7 @@ class ExtDateTime_Persian extends ExtDateTime
 	{
 		$this->setTranslator($translator);
 		$modify = false;
-		if (is_string($time) && !preg_match('/^[-+]?\d+$/', $time)) {
+		if (is_string($time) && !is_numeric($time)) {
 			$time = $this->backTranslate($time);
 			$time = self::jalaliToGregorianStr($time);
 			$modify = $time;
@@ -37,7 +37,7 @@ class ExtDateTime_Persian extends ExtDateTime
 	}
 
 	public function set($time = null, $timezone = null) {
-		if (is_string($time) && !preg_match('/^[-+]?\d+$/', $time)) {
+		if (is_string($time) && !is_numeric($time)) {
 			$time = $this->backTranslate($time);
 			$class = __CLASS__;
 			$time = new $class($time, $timezone ? $timezone : $this->getTimezone());

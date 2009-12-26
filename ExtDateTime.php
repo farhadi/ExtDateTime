@@ -37,12 +37,12 @@ class ExtDateTime extends DateTime
 		if (!isset($timezone)) $timezone = new DateTimeZone(date_default_timezone_get());
 		elseif (is_string($timezone)) $timezone = new DateTimeZone($timezone);
 
-		if (is_a($time, 'DateTime') || preg_match('/^[-+]?\d+$/', $time)) {
+		if (is_a($time, 'DateTime') || is_numeric($time)) {
 			parent::__construct(null, $timezone);
 			$this->set($time);
 		} else {
 			if (is_string($time)) $time = $this->backTranslate($time);
-			$date = parent::__construct($time, $timezone);
+			parent::__construct($time, $timezone);
 		}
 	}
 	
@@ -118,7 +118,7 @@ class ExtDateTime extends DateTime
 	{
 		if (is_a($time, 'DateTime')) {
 			$time = $time->format('U');
-		} elseif (!preg_match('/^[-+]?\d+$/', $time)) {
+		} elseif (!is_numeric($time)) {
 			$time = new ExtDateTime($time, $timezone ? $timezone : $this->getTimezone());
 			$time = $time->getTimestamp();
 		}

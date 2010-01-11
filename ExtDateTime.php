@@ -6,7 +6,7 @@
  * 
  * @package     ExtDateTime
  * @version     1.0
- * @copyright  	GNU General Public License 3.0 (http://www.gnu.org/licenses/gpl.html)
+ * @license     GNU General Public License 3.0 (http://www.gnu.org/licenses/gpl.html)
  * @author      Ali Farhadi <ali@farhadi.ir>
  * @example
  * 		$date = ExtDateTime::factory('Persian');
@@ -104,7 +104,10 @@ class ExtDateTime extends DateTime
 		$diff = $unixtimestamp - $this->getTimestamp(); 
 		$days = floor($diff / 86400);
 		$seconds = $diff - $days * 86400;
+		$timezone = $this->getTimezone();
+		$this->setTimezone('UTC');
 		parent::modify("$days days $seconds seconds");
+		$this->setTimezone($timezone);
 		return $this;
 	}
 
